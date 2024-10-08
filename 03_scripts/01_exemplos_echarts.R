@@ -1,14 +1,12 @@
 
 library(echarts4r)
 
-
 # Gráfico de dispersão ----------------------------------------------------
 
 mtcars |>
     e_charts(x = wt) |> # eixo x
     e_scatter(serie = mpg) |> # dispersão - guia o y
     e_tooltip() # rótulos nos pontos
-
 
 # Gráfico de linha -------------------------------------------------------
 
@@ -19,7 +17,6 @@ ggplot2::txhousing |> # base exemplo do pacote ggplot2
     e_charts(x = year) |> # eixo x
     e_line(serie = sales) |> # gráfico de linha - tendo como base venda
     e_tooltip() # rótulo dos pontos
-
 
 # Gráfico de linhas - empilhadas ------------------------------------------
 

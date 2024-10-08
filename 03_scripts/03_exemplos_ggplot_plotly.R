@@ -4,6 +4,7 @@ library(plotly)
 
 
 # Gráfico de dispersão ----------------------------------------------------
+
 p <- mtcars |>
     tibble::rownames_to_column() |>
     ggplot(aes(x = wt, y = mpg, color = as.character(cyl), text = rowname)) +

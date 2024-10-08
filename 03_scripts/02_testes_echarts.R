@@ -38,7 +38,6 @@ data_test |> e_charts(x = ano_test) |>
 #e_legend(show = TRUE) |>
 #e_color(cores)
 
-
 # Gráfico de linha --------------------------------------------------------
 
 data |>
