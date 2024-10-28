@@ -1,7 +1,7 @@
 library(plotly)
 library(ggplot2)
 
-data <- readxl::read_xlsx("teste_primeiro_grafico.xlsx") |> janitor::clean_names()
+data <- readxl::read_xlsx("01_raw_data/teste_primeiro_grafico.xlsx") |> janitor::clean_names()
 
 
 # Gráfico de dispersão  ---------------------------------------------------

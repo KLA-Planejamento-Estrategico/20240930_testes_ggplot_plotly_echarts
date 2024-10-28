@@ -1,0 +1,37 @@
+---
+title: "teste"
+format: html
+editor: visual
+---
+
+```{r, echo = FALSE}
+
+
+library(ggiraph)
+library(ggplot2)
+# Gráfico de barras -------------------------------------------------------
+# simples
+# contar quantos carros existem por número de cilindros (cyl)
+df <- mtcars
+df$cyl <- as.factor(df$cyl)  # Transformar cilindros em categorias
+
+# df |> tibble::as_tibble() |> dplyr::pull(cyl)
+
+df <- df |>
+    dplyr::mutate(
+        cyl = as.factor(cyl)
+    )
+
+
+p <- ggplot(df, aes(x = cyl)) +
+    geom_bar_interactive(aes(tooltip = ..count..),  # contagem de cada categoria
+                         fill = "steelblue", color = "black") +
+    # fill preenchimento e color bordas
+    labs(title = "Contagem de Carros por Número de Cilindros",
+         x = "Número de Cilindros", y = "Contagem")
+# rótulos dos eixos
+
+# Tornar o gráfico interativo com girafe
+girafe(ggobj = p, width_svg = 7, height_svg = 3)  # ajuste de largura e altura)
+
+```
