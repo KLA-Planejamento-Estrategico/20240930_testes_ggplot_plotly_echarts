@@ -1,0 +1,396 @@
+---
+title: "título em negrito"
+author: abaixo do título sem negrito
+format: 
+    revealjs: 
+        footer: "rodapé"
+        theme: serif 
+        transition: slide
+        title-slide-attributes: 
+          # data-background-image: teste.png
+          logo: teste.png
+editor: visual
+
+# 
+# .slide-logo {
+#     left:10px !important
+# }
+---
+
+##  {background-image="teste.png"}
+
+##### Passo 1: adicionando gráficos propostos pelo chat
+
+```{r, echo=FALSE}
+
+#Carregar pacotes 
+library(ggplot2) 
+library(patchwork) 
+
+# Criar gráficos de exemplo 
+grafico1 <- ggplot(mtcars, aes(x = mpg, y = hp)) + geom_point() + ggtitle("Gráfico 1") 
+
+grafico2 <- ggplot(mtcars, aes(x = cyl, y = wt)) + geom_point() + ggtitle("Gráfico 2") 
+
+grafico3 <- ggplot(mtcars, aes(x = qsec, y = drat)) + geom_point() + ggtitle("Gráfico 3") 
+
+grafico4 <- ggplot(mtcars, aes(x = disp, y = mpg)) + geom_point() + ggtitle("Gráfico 4") 
+
+grafico5 <- ggplot(mtcars, aes(x = wt, y = hp)) + geom_point() + ggtitle("Gráfico 5") 
+
+grafico6 <- ggplot(mtcars, aes(x = mpg, y = qsec)) + geom_point() + ggtitle("Gráfico 6") 
+
+# Organizar os gráficos em uma grade (2 linhas, 3 colunas) 
+layout_grid <- (grafico1 | grafico2 | grafico3) / (grafico4 | grafico5 | grafico6) 
+layout_grid
+
+```
+
+## 
+
+##### Passo 2: add novo slide com gráfico próprio
+
+```{r, echo=FALSE}
+
+library(gdtools)
+library(ggiraph)
+library(ggplot2)
+
+data <- readxl::read_xlsx("01_raw_data/area_plantada_pin_cenario_a.xlsx") |>
+    janitor::clean_names()
+
+data_long <- data |>
+    tidyr::pivot_longer(
+        cols = c(starts_with("x20"), "est"),
+        names_to = "ano",
+        values_to = "area"
+    ) |>
+    dplyr::mutate(
+        ano = stringr::str_remove_all(ano, pattern = "x"),
+        cor = dplyr::case_when(
+            classe == "Área plantada Pinus" ~ "#4CAF50",
+            classe == "Área plantada Eucalipto" ~ "#FFA500",
+            classe == "Área de giro" ~ "grey",
+            classe == "Restrito" ~ "#FF4500",
+            .default = "black"
+        ),
+        area = round(area, 1),
+        ano = as.numeric(ano)
+    ) |>
+    # total por ano
+    dplyr::group_by(ano)  |>
+    dplyr::mutate(
+        total_area = sum(area),
+        total_area = round(total_area, 0)
+    ) |>
+    dplyr::ungroup() |>
+    # NA em ano para Estrutural
+    dplyr::mutate(
+        ano = as.character(ano),
+        ano = dplyr::case_when(
+            is.na(ano) ~ "Est.",
+            .default = ano
+        )
+    )
+
+data_long_fator <- data_long |>
+    dplyr::mutate(
+        classe = forcats::fct_relevel(
+            classe,
+            "Restrito",
+            "Área de giro",
+            "Área plantada Eucalipto",
+            "Área plantada Pinus"
+        ),
+        ano = as.character(ano)
+    ) |>
+    dplyr::arrange(classe)
+
+cores <- unique(data_long_fator$cor) # puxa como vetores
+classes <- unique(data_long_fator$classe) # puxa como vetores
+names(cores) <- classes # nomeia um vetor com o outro
+
+max_y <- max(data_long_fator$total_area, na.rm = TRUE) |> round(0)
+intervalo_y <- ceiling((max_y / 5) / 10) * 10
+
+d <- ggplot(
+    data = data_long_fator,
+    mapping = aes(
+        x = ano,
+        y = area,
+        fill = classe,
+        # usando a classe para definir as cores
+        tooltip = paste("Área:", area, "mil ha\nCategoria:", classe)
+        )) +
+    scale_y_continuous(
+        expand = c(0, 0),
+        limits = c(0, intervalo_y * 5),
+        # define o limite de y 5 vezes o intervalo calculado
+        # breaks = seq(0, intervalo_y * 5, by = intervalo_y),
+        # pega o intervalo_y e vai somando até chegar em intervalo_y * 5
+        labels = scales::label_number(accuracy = 1)  # tira as casas decimais
+    ) +
+    geom_bar_interactive(
+        stat = "identity",
+        # não conta as obss usa como está nos dados
+        position = "stack",
+        # barras empilhadas
+        color = "white",
+        size = 0.5 # bordas brancas
+    ) +
+    geom_text(
+        aes(
+            ano,
+            # posição do eixo x
+            total_area + max_y * 0.05,
+            # distancia dos rótulos 5% acima da barra em relação ao total
+            label = total_area,
+            fill = NULL # remove o mapeamento de cor
+        ),
+        data = data_long_fator,
+        fontface = "bold", # negrito
+        size = 5
+    ) +
+    theme(
+        # sempre por ultimo
+        text = element_text(size = 20),
+        # panel.grid.major.y = element_line(color = "grey20", linetype = "dashed"),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color = "black"),
+        axis.ticks = element_line(color = "black"),
+        legend.position = "top",
+        legend.box = "horizontal",
+        legend.title = element_blank(),
+        plot.title = element_text(
+            hjust = 0.5,
+            face = "bold",
+            margin = margin(b = 30)
+        ),
+        # aumentando a margem inferior do titulo
+        panel.background = element_rect(fill = "white"),
+        legend.key.width = unit(1.5, "cm") # legenda com cor retangular
+    ) +
+    scale_fill_manual(values = cores) +  # usando cores definidas
+    labs(title = "Área Plantada (kha)",
+         x = "Anos",
+         y = "Milhares")
+
+girafe(
+    ggobj = d,
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 16,
+    height_svg = 9
+)
+
+
+```
+
+## 
+
+##### Passo 3: add novo slide com gráfico disposto em grade
+
+```{r, echo=FALSE, results='asis'}
+
+#Carregar pacotes 
+library(ggplot2) 
+# library(patchwork) 
+library(gdtools)
+library(ggiraph)
+library(htmltools)
+
+data <- readxl::read_xlsx("01_raw_data/area_plantada_pin_cenario_a.xlsx") |>
+    janitor::clean_names()
+
+data_long <- data |>
+    tidyr::pivot_longer(
+        cols = c(starts_with("x20"), "est"),
+        names_to = "ano",
+        values_to = "area"
+    ) |>
+    dplyr::mutate(
+        ano = stringr::str_remove_all(ano, pattern = "x"),
+        cor = dplyr::case_when(
+            classe == "Área plantada Pinus" ~ "#4CAF50",
+            classe == "Área plantada Eucalipto" ~ "#FFA500",
+            classe == "Área de giro" ~ "grey",
+            classe == "Restrito" ~ "#FF4500",
+            .default = "black"
+        ),
+        area = round(area, 1),
+        ano = as.numeric(ano)
+    ) |>
+    # total por ano
+    dplyr::group_by(ano)  |>
+    dplyr::mutate(
+        total_area = sum(area),
+        total_area = round(total_area, 0)
+    ) |>
+    dplyr::ungroup() |>
+    # NA em ano para Estrutural
+    dplyr::mutate(
+        ano = as.character(ano),
+        ano = dplyr::case_when(
+            is.na(ano) ~ "Est.",
+            .default = ano
+        )
+    )
+
+data_long_fator <- data_long |>
+    dplyr::mutate(
+        classe = forcats::fct_relevel(
+            classe,
+            "Restrito",
+            "Área de giro",
+            "Área plantada Eucalipto",
+            "Área plantada Pinus"
+        ),
+        ano = as.character(ano)
+    ) |>
+    dplyr::arrange(classe)
+
+cores <- unique(data_long_fator$cor) # puxa como vetores
+classes <- unique(data_long_fator$classe) # puxa como vetores
+names(cores) <- classes # nomeia um vetor com o outro
+
+max_y <- max(data_long_fator$total_area, na.rm = TRUE) |> round(0)
+intervalo_y <- ceiling((max_y / 5) / 10) * 10
+
+# criar função que cria o gráfico
+criar_grafico <- function(data) {
+    
+    ggplot(
+    data = data,
+    mapping = aes(
+        x = ano,
+        y = area,
+        fill = classe,
+        # usando a classe para definir as cores
+        tooltip = paste("Área:", area, "mil ha\nCategoria:", classe)
+        )) +
+    scale_y_continuous(
+        expand = c(0, 0),
+        limits = c(0, intervalo_y * 5),
+        # define o limite de y 5 vezes o intervalo calculado
+        # breaks = seq(0, intervalo_y * 5, by = intervalo_y),
+        # pega o intervalo_y e vai somando até chegar em intervalo_y * 5
+        labels = scales::label_number(accuracy = 1)  # tira as casas decimais
+    ) +
+    geom_bar_interactive(
+        stat = "identity",
+        # não conta as obss usa como está nos dados
+        position = "stack",
+        # barras empilhadas
+        color = "white",
+        size = 0.5 # bordas brancas
+    ) +
+    geom_text(
+        aes(
+            ano,
+            # posição do eixo x
+            total_area + max_y * 0.05,
+            # distancia dos rótulos 5% acima da barra em relação ao total
+            label = total_area,
+            fill = NULL # remove o mapeamento de cor
+        ),
+        data = data_long_fator,
+        fontface = "bold", # negrito
+        size = 5
+    ) +
+    theme(
+        # sempre por ultimo
+        text = element_text(size = 60),
+        # panel.grid.major.y = element_line(color = "grey20", linetype = "dashed"),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(color = "black"),
+        axis.ticks = element_line(color = "black"),
+        legend.position = "top",
+        legend.box = "horizontal",
+        legend.title = element_blank(),
+        plot.title = element_text(
+            hjust = 0.5,
+            face = "bold",
+            margin = margin(b = 30)
+        ),
+        # aumentando a margem inferior do titulo
+        panel.background = element_rect(fill = "white"),
+        legend.key.width = unit(1.5, "cm") # legenda com cor retangular
+    ) +
+    scale_fill_manual(values = cores) +  # usando cores definidas
+    labs(title = "Área Plantada (kha)",
+         x = "Anos",
+         y = "Milhares")
+    
+}
+
+
+grafico_proprio_1 <- girafe(
+    ggobj = criar_grafico(data_long_fator),
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 25,
+    height_svg = 18
+)
+
+grafico_proprio_2 <- girafe(
+    ggobj = criar_grafico(data_long_fator),
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 25,
+    height_svg = 18
+)
+grafico_proprio_3 <- girafe(
+    ggobj = criar_grafico(data_long_fator),
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 25,
+    height_svg = 18
+)
+
+grafico_proprio_4 <- girafe(
+    ggobj = criar_grafico(data_long_fator),
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 25,
+    height_svg = 18
+)
+
+grafico_proprio_5 <- girafe(
+    ggobj = criar_grafico(data_long_fator),
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 25,
+    height_svg = 18
+)
+
+grafico_proprio_6 <- girafe(
+    ggobj = criar_grafico(data_long_fator),
+    fonts = list(sans = "Roboto Condensed"),
+    width_svg = 25,
+    height_svg = 18
+)
+
+
+# gridExtra::grid.arrange(
+#   grafico_proprio, grafico_proprio, grafico_proprio,
+#   grafico_proprio, grafico_proprio, grafico_proprio,
+#   ncol = 3
+# )
+
+# Organizar em uma grade usando HTML
+htmltools::browsable(tagList(
+    tags$div(
+        style = "display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 10px;align-items: center; justify-items: center; height: 100vh;",
+    # display grid diz que será grade
+    # grit-template-columns cria a grade de 3 colunas tendo uma fração de espaço 
+    # gap define o espaço entre os elementos
+    # anign items centraliza verticalmente os ítens, justify horizontalmente
+    # height faz com o que ocupe a altura total da tela
+    
+    # tentativa de usar o mesmo objeto - resultou em falha
+    grafico_proprio_1,
+    grafico_proprio_2,
+    grafico_proprio_3,
+    grafico_proprio_4,
+    grafico_proprio_5,
+    grafico_proprio_6
+    )
+))
+
+
+```
