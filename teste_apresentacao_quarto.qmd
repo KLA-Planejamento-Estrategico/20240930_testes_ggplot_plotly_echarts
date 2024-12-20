@@ -56,6 +56,7 @@ library(gdtools)
 library(ggiraph)
 library(ggplot2)
 
+# trabalhando os dados
 data <- readxl::read_xlsx("01_raw_data/area_plantada_pin_cenario_a.xlsx") |>
     janitor::clean_names()
 
@@ -106,6 +107,7 @@ data_long_fator <- data_long |>
     ) |>
     dplyr::arrange(classe)
 
+# trabalhando as cores em detrimentos das classes
 cores <- unique(data_long_fator$cor) # puxa como vetores
 classes <- unique(data_long_fator$classe) # puxa como vetores
 names(cores) <- classes # nomeia um vetor com o outro
@@ -113,6 +115,7 @@ names(cores) <- classes # nomeia um vetor com o outro
 max_y <- max(data_long_fator$total_area, na.rm = TRUE) |> round(0)
 intervalo_y <- ceiling((max_y / 5) / 10) * 10
 
+# gráfico em si
 d <- ggplot(
     data = data_long_fator,
     mapping = aes(
@@ -298,7 +301,7 @@ criar_grafico <- function(data) {
     ) +
     theme(
         # sempre por ultimo
-        text = element_text(size = 60),
+        text = element_text(size = 70),
         # panel.grid.major.y = element_line(color = "grey20", linetype = "dashed"),
         panel.grid.minor = element_blank(),
         axis.line = element_line(color = "black"),
@@ -326,41 +329,41 @@ criar_grafico <- function(data) {
 grafico_proprio_1 <- girafe(
     ggobj = criar_grafico(data_long_fator),
     fonts = list(sans = "Roboto Condensed"),
-    width_svg = 25,
+    width_svg = 40,
     height_svg = 18
 )
 
 grafico_proprio_2 <- girafe(
     ggobj = criar_grafico(data_long_fator),
     fonts = list(sans = "Roboto Condensed"),
-    width_svg = 25,
+    width_svg = 40,
     height_svg = 18
 )
 grafico_proprio_3 <- girafe(
     ggobj = criar_grafico(data_long_fator),
     fonts = list(sans = "Roboto Condensed"),
-    width_svg = 25,
-    height_svg = 18
+    width_svg = 35,
+    height_svg = 25
 )
 
 grafico_proprio_4 <- girafe(
     ggobj = criar_grafico(data_long_fator),
     fonts = list(sans = "Roboto Condensed"),
-    width_svg = 25,
+    width_svg = 40,
     height_svg = 18
 )
 
 grafico_proprio_5 <- girafe(
     ggobj = criar_grafico(data_long_fator),
     fonts = list(sans = "Roboto Condensed"),
-    width_svg = 25,
+    width_svg = 40,
     height_svg = 18
 )
 
 grafico_proprio_6 <- girafe(
     ggobj = criar_grafico(data_long_fator),
     fonts = list(sans = "Roboto Condensed"),
-    width_svg = 25,
+    width_svg = 40,
     height_svg = 18
 )
 

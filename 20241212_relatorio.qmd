@@ -1,0 +1,46 @@
+---
+title: "título em negrito"
+author: abaixo do título sem negrito
+format: 
+    revealjs: 
+        footer: "rodapé"
+        theme: serif 
+        transition: slide
+        title-slide-attributes: 
+          # data-background-image: teste.png
+          logo: teste.png
+editor: visual
+
+# 
+# .slide-logo {
+#     left:10px !important
+# }
+---
+
+##
+##### Passo 1: adicionando gráficos propostos pelo chat
+
+```{r, echo=FALSE}
+
+#Carregar pacotes 
+library(ggplot2) 
+library(patchwork) 
+
+# Criar gráficos de exemplo 
+grafico1 <- ggplot(mtcars, aes(x = mpg, y = hp)) + geom_point() + ggtitle("Gráfico 1") 
+
+grafico2 <- ggplot(mtcars, aes(x = cyl, y = wt)) + geom_point() + ggtitle("Gráfico 2") 
+
+grafico3 <- ggplot(mtcars, aes(x = qsec, y = drat)) + geom_point() + ggtitle("Gráfico 3") 
+
+grafico4 <- ggplot(mtcars, aes(x = disp, y = mpg)) + geom_point() + ggtitle("Gráfico 4") 
+
+grafico5 <- ggplot(mtcars, aes(x = wt, y = hp)) + geom_point() + ggtitle("Gráfico 5") 
+
+grafico6 <- ggplot(mtcars, aes(x = mpg, y = qsec)) + geom_point() + ggtitle("Gráfico 6") 
+
+# Organizar os gráficos em uma grade (2 linhas, 3 colunas) 
+layout_grid <- (grafico1 | grafico2 | grafico3) / (grafico4 | grafico5 | grafico6) 
+layout_grid
+
+```
